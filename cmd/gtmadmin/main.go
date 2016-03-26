@@ -80,16 +80,12 @@ func main() {
 				{
 					Name:  "activate",
 					Usage: "turn user to active",
-					Action: func(c *cli.Context) {
-						println("b1 Activated: ", c.Args().First())
-					},
+					Action: activateAccountById,
 				},
 				{
 					Name:  "deactivate",
 					Usage: "turn user to inactive",
-					Action: func(c *cli.Context) {
-						println("b2 removed task template: ", c.GlobalString("customer"))
-					},
+					Action: deactivateAccountById,
 				},
 				{
 					Name:   "list",
@@ -144,6 +140,28 @@ func userByID(c *cli.Context) {
 		println("Error : Not an number")
 	}
 	admin.GetUserById(userid).DisplayUser()
+}
+
+func activateAccountById(c *cli.Context){
+	db := connectDB(c)
+	admin := gotham_admin.GothamDB{db}
+	userid, err := strconv.Atoi(c.Args().First())
+	if err != nil {
+		println("Error : Not an number")
+	}
+	admin.ActivateAccount(userid)
+
+}
+
+func deactivateAccountById(c *cli.Context){
+	db := connectDB(c)
+	admin := gotham_admin.GothamDB{db}
+	userid, err := strconv.Atoi(c.Args().First())
+	if err != nil {
+		println("Error : Not an number")
+	}
+	admin.DeactivateAccount(userid)
+
 }
 
 func connectDB(c *cli.Context) *sql.DB {

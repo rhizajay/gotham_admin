@@ -8,23 +8,19 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-
-
 type RhizaUser struct {
 	id       int
 	username string
 	email    string
-	// is_active bool
+	is_active int
 	// created time.Time
 	// lastLogin time.Time
-	groups   map[int]bool
+	groups map[int]bool
 }
-
-
 
 func (r GothamDB) GetUsers() []RhizaUser {
 
-	rows, err := r.DB.Query("SELECT account.id, email, username, group_id FROM account LEFT join account_to_account_group ON account.id = account_to_account_group.account_id ")
+	rows, err := r.DB.Query("SELECT account.id, email, username, is_active, group_id FROM account LEFT join account_to_account_group ON account.id = account_to_account_group.account_id ")
 	checkErr(err)
 
 	var userlist []RhizaUser
@@ -37,7 +33,7 @@ func (r GothamDB) GetUsers() []RhizaUser {
 
 		var currentUser RhizaUser
 
-		err = rows.Scan(&currentUser.id, &currentUser.email, &currentUser.username, &i)
+		err = rows.Scan(&currentUser.id, &currentUser.email, &currentUser.is_active, &currentUser.username, &i)
 
 		if i.Valid {
 			group = int(i.Int64)
@@ -60,7 +56,7 @@ func (r GothamDB) GetUsers() []RhizaUser {
 
 func (r GothamDB) GetUserByEmail(s string) RhizaUser {
 
-	rows, err := r.DB.Query("SELECT account.id, email, username, group_id FROM account join account_to_account_group ON account.id = account_to_account_group.account_id WHERE email=?", s)
+	rows, err := r.DB.Query("SELECT account.id, email, username, is_active, group_id FROM account join account_to_account_group ON account.id = account_to_account_group.account_id WHERE email=?", s)
 	checkErr(err)
 	var user RhizaUser
 	user.groups = make(map[int]bool)
@@ -68,7 +64,7 @@ func (r GothamDB) GetUserByEmail(s string) RhizaUser {
 	for rows.Next() {
 		var group int
 
-		err = rows.Scan(&user.id, &user.email, &user.username, &group)
+		err = rows.Scan(&user.id, &user.email, &user.username, &user.is_active, &group)
 
 		checkErr(err)
 		user.groups[group] = true
@@ -79,7 +75,7 @@ func (r GothamDB) GetUserByEmail(s string) RhizaUser {
 
 func (r GothamDB) GetUserById(id int) RhizaUser {
 
-	rows, err := r.DB.Query("SELECT account.id, email, username, group_id FROM account join account_to_account_group ON account.id = account_to_account_group.account_id WHERE account.id=?", id)
+	rows, err := r.DB.Query("SELECT account.id, email, username, is_active, group_id FROM account join account_to_account_group ON account.id = account_to_account_group.account_id WHERE account.id=?", id)
 	checkErr(err)
 	var user RhizaUser
 	user.groups = make(map[int]bool)
@@ -87,7 +83,7 @@ func (r GothamDB) GetUserById(id int) RhizaUser {
 	for rows.Next() {
 		var group int
 
-		err = rows.Scan(&user.id, &user.email, &user.username, &group)
+		err = rows.Scan(&user.id, &user.email, &user.username, &user.is_active, &group)
 
 		checkErr(err)
 		user.groups[group] = true
@@ -96,22 +92,65 @@ func (r GothamDB) GetUserById(id int) RhizaUser {
 
 }
 
+func (r RhizaUser) DisplayUser() {
+	fmt.Printf("%d\t%s\t%s\t", r.id, r.username, r.email)
 
-func (r RhizaUser) DisplayUser(){
-	fmt.Printf("%d\t%s\t%s\t groups:", r.id, r.username, r.email)
+	if r.is_active == 1{
+		fmt.Printf("\tactive\t")		
+	} else {
+		fmt.Printf("\tinactive\t")
+	}
+	fmt.Printf(" groups:")
 	for key := range r.groups {
-	 	fmt.Printf(" %d ",  key)
-     }
+		fmt.Printf(" %d ", key)
+	}
 	fmt.Printf("\n")
 }
 
+func (r GothamDB) DeactivateAccount(userid int) {
 
+	stmt, err := r.DB.Prepare("UPDATE account SET is_active=0 WHERE id=?")
 
+	checkErr(err)
+
+	res, err := stmt.Exec(userid)
+	checkErr(err)
+
+	affect, err := res.RowsAffected()
+	checkErr(err)
+
+	fmt.Printf("Number of records updated: %d\n",affect)
+}
+
+func (r GothamDB) ActivateAccount(userid int) {
+
+	stmt, err := r.DB.Prepare("UPDATE account SET is_active=1 WHERE id=?")
+
+	checkErr(err)
+
+	res, err := stmt.Exec(userid)
+	checkErr(err)
+
+	affect, err := res.RowsAffected()
+	checkErr(err)
+
+	fmt.Printf("Number of records updated: %d\n",affect)
+}
+
+func (r GothamDB) DeactivateAccountByEmail(email string) {
+	user := r.GetUserByEmail(email)
+	r.DeactivateAccount(user.id)
+
+}
+
+func (r GothamDB) ActivateAccountByEmail(email string) {
+	user := r.GetUserByEmail(email)
+	r.ActivateAccount(user.id)
+
+}
 
 func checkErr(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
-
-
