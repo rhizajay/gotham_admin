@@ -28,15 +28,15 @@ func (r GothamDB) GetUsers() []RhizaUser {
 	var lastUser RhizaUser
 
 	for rows.Next() {
-		var i sql.NullInt64
+		var nullableid sql.NullInt64
 		var group int
 
 		var currentUser RhizaUser
 
-		err = rows.Scan(&currentUser.id, &currentUser.email, &currentUser.is_active, &currentUser.username, &i)
+		err = rows.Scan(&currentUser.id, &currentUser.email, &currentUser.username, &currentUser.is_active, &nullableid)
 
-		if i.Valid {
-			group = int(i.Int64)
+		if nullableid.Valid {
+			group = int(nullableid.Int64)
 			if currentUser.id == lastUser.id {
 				lastUser.groups[group] = true
 			} else {
@@ -50,6 +50,7 @@ func (r GothamDB) GetUsers() []RhizaUser {
 
 	}
 
+	fmt.Printf("Number of users: %d\n", len(userlist))
 	return userlist
 
 }
