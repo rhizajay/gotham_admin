@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"os"
+	"strconv"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -19,25 +20,25 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:        "dbhost, d",
-			Value:       "127.0.0.1:13308",
-			Usage:       "database_host:port",
-			EnvVar:      "RHIZA_USERDB",
+			Name:   "dbhost, d",
+			Value:  "127.0.0.1:13308",
+			Usage:  "database_host:port",
+			EnvVar: "RHIZA_USERDB",
 		},
 		cli.StringFlag{
-			Name:        "user, u",
-			Value:       "username",
-			Usage:       "username",
-			EnvVar:      "RHIZA_ADMIN_USER",
+			Name:   "user, u",
+			Value:  "username",
+			Usage:  "username",
+			EnvVar: "RHIZA_ADMIN_USER",
 		},
 		cli.StringFlag{
-			Name:        "password, p",
-			Usage:       "password",
-			EnvVar:      "RHIZA_ADMIN_PASS",
+			Name:   "password, p",
+			Usage:  "password",
+			EnvVar: "RHIZA_ADMIN_PASS",
 		},
 		cli.StringFlag{
-			Name:        "customer, c",
-			Usage:       "customer",
+			Name:  "customer, c",
+			Usage: "customer",
 		},
 	}
 
@@ -45,7 +46,7 @@ func main() {
 
 		{
 			Name:    "group",
-			Aliases: []string{"r"},
+			Aliases: []string{"g"},
 			Usage:   "options for task templates",
 			Subcommands: []cli.Command{
 				{
@@ -78,14 +79,14 @@ func main() {
 			Subcommands: []cli.Command{
 				{
 					Name:  "activate",
-					Usage: "add a user to group",
+					Usage: "turn user to active",
 					Action: func(c *cli.Context) {
 						println("b1 Activated: ", c.Args().First())
 					},
 				},
 				{
 					Name:  "deactivate",
-					Usage: "remove a user from group",
+					Usage: "turn user to inactive",
 					Action: func(c *cli.Context) {
 						println("b2 removed task template: ", c.GlobalString("customer"))
 					},
@@ -94,6 +95,16 @@ func main() {
 					Name:   "list",
 					Usage:  "list users",
 					Action: listUsers,
+				},
+				{
+					Name:   "email",
+					Usage:  "search user by email",
+					Action: userByEmail,
+				},
+				{
+					Name:   "id",
+					Usage:  "search user by id",
+					Action: userByID,
 				},
 			},
 		},
@@ -104,27 +115,40 @@ func main() {
 
 func listUsers(c *cli.Context) {
 
-
 	fmt.Println("got to listUsers")
 	//println(c.FlagNames)
 	println("display values")
 	println(c.GlobalString("customer"))
 	println(c.GlobalString("user"))
 
-	
 	var db = connectDB(c)
-	var admin = gotham_admin.RhizaUserDB{db}
+	var admin = gotham_admin.GothamDB{db}
 	//fmt.Println(admin.GetUsers())
-	for _, value := range admin.GetUsers(){
+	for _, value := range admin.GetUsers() {
 		value.DisplayUser()
 	}
+}
+
+func userByEmail(c *cli.Context) {
+	var db = connectDB(c)
+	var admin = gotham_admin.GothamDB{db}
+
+	admin.GetUserByEmail(c.Args().First()).DisplayUser()
+}
+
+func userByID(c *cli.Context) {
+	var db = connectDB(c)
+	var admin = gotham_admin.GothamDB{db}
+	userid, err := strconv.Atoi(c.Args().First())
+	if err != nil {
+		println("Error : Not an number")
+	}
+	admin.GetUserById(userid).DisplayUser()
 }
 
 func connectDB(c *cli.Context) *sql.DB {
 
 	println("connectDB")
-	println(c.String("customer"))
-
 
 	var customer = c.GlobalString("customer")
 	var dbhost = c.GlobalString("dbhost")
@@ -137,11 +161,6 @@ func connectDB(c *cli.Context) *sql.DB {
 
 	s = []string{username, ":", password, "@tcp(", dbhost, ")/", customerdb}
 	connectString := strings.Join(s, "")
-
-
-
-	println(connectString)
-
 
 	var err error
 	db, err = sql.Open("mysql", connectString)
