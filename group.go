@@ -12,13 +12,6 @@ type RhizaGroup struct {
 	title    string
 }
 
-type RhizaGroupMember struct {
-	id int
-	username string
-	email string
-}
-
-
 func (r GothamDB) GetGroupNames() []RhizaGroup {
 	rows, err := r.DB.Query("SELECT id, title FROM account_group")
 	checkErr(err)
@@ -38,7 +31,6 @@ func (r GothamDB) GetGroupNames() []RhizaGroup {
 		}
 
 		checkErr(err)
-		fmt.Println(group)
 
 		groups = append(groups, group)
 	}
@@ -64,7 +56,6 @@ func (r GothamDB) GetGroupName(groupid int) RhizaGroup {
 		}
 
 		checkErr(err)
-		fmt.Println(group)
 
 	}
 	return group
@@ -94,18 +85,19 @@ func (r GothamDB) SetGroup(userid int, groupid int) {
 
 }
 
-func (r GothamDB) GetGroupMembers(groupid int) []RhizaGroupMember{
+func (r GothamDB) GetGroupMembersByGroupId(groupid int) []RhizaUser {
 
-	rows, err := r.DB.Query("SELECT account_to_account_group.account_id, username, email FROM account JOIN account_to_account_group ON account_id = account_to_account_group.account_id WHERE account_to_account_group.group_id=? and account.id = account_to_account_group.account_id", groupid)
+	rows, err := r.DB.Query("SELECT account_to_account_group.account_id, email, username, is_active FROM account JOIN account_to_account_group ON account_id = account_to_account_group.account_id WHERE account_to_account_group.group_id=? and account.id = account_to_account_group.account_id", groupid)
 	checkErr(err)
 
-	var members []RhizaGroupMember
+	var members []RhizaUser
 
 	for rows.Next() {
-		var user RhizaGroupMember
+		var user RhizaUser
 
-		err = rows.Scan(&user.id, &user.username, &user.email)
-
+		err = rows.Scan(&user.id, &user.email, &user.username, &user.is_active)
+		user.groups = make(map[int]bool)
+		user.groups[groupid] = true
 		checkErr(err)
 
 		members = append(members, user)
@@ -113,7 +105,6 @@ func (r GothamDB) GetGroupMembers(groupid int) []RhizaGroupMember{
 	return members
 
 }
-
 
 func (r GothamDB) DeleteUserFromGroup(userid int, groupid int) {
 	user := r.GetUserById(userid)
@@ -134,4 +125,13 @@ func (r GothamDB) DeleteUserFromGroup(userid int, groupid int) {
 
 		fmt.Println(affect)
 	}
+}
+
+// type RhizaGroup struct {
+// 	group_id int
+// 	title    string
+// }
+
+func (r RhizaGroup) DisplayGroup() {
+	fmt.Printf("%d\t%s\n", r.group_id, r.title)
 }
