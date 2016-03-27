@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/codegangsta/cli"
@@ -30,9 +31,38 @@ func listGroups(c *cli.Context){
 }
 
 func addUserToGroup (c *cli.Context){
-	println("added")
+	args := c.Args()
+
+	groupid, err := strconv.Atoi(args[1])
+	if err != nil {
+		println("Error : Not an number")
+	}
+	userid, err := strconv.Atoi(args[0])
+	if err != nil {
+		println("Error : Not an number")
+	}
+
+	db := connectDB(c)
+	admin := gotham_admin.GothamDB{DB: db}
+	admin.SetGroup(userid, groupid)
+	fmt.Printf("added %d to group: %d\n", userid, groupid)
+
+
+
 }
 
 func removeUserFromGroup (c *cli.Context){
-	println("removed")
-}
+	args := c.Args()
+
+	groupid, err := strconv.Atoi(args[1])
+	if err != nil {
+		println("Error : Not an number")
+	}
+	userid, err := strconv.Atoi(args[0])
+	if err != nil {
+		println("Error : Not an number")
+	}
+	db := connectDB(c)
+	admin := gotham_admin.GothamDB{DB: db}
+	admin.DeleteUserFromGroup(userid, groupid)
+	fmt.Printf("removed %d from group: %d\n", userid, groupid)}
