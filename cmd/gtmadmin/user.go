@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/codegangsta/cli"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/rhizajay/gotham_admin"
 )
 
