@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
 	"strconv"
 
 	"github.com/codegangsta/cli"
@@ -11,7 +11,7 @@ import (
 
 func listMembers(c *cli.Context){
 	db := connectDB(c)
-	admin := gotham_admin.GothamDB{db}
+	admin := gotham_admin.GothamDB{DB: db}
 	groupid, err := strconv.Atoi(c.Args().First())
 	if err != nil {
 		println("Error : Not an number")
@@ -25,7 +25,7 @@ func listMembers(c *cli.Context){
 
 func listGroups(c *cli.Context){
 	db := connectDB(c)
-	admin := gotham_admin.GothamDB{db}
+	admin := gotham_admin.GothamDB{DB: db}
 	for _, value := range admin.GetGroupNames() {
 		value.DisplayGroup()
 	}

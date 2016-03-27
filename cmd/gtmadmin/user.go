@@ -9,7 +9,7 @@ import (
 
 func listUsers(c *cli.Context) {
 	var db = connectDB(c)
-	var admin = gotham_admin.GothamDB{db}
+	var admin = gotham_admin.GothamDB{DB: db}
 	for _, value := range admin.GetUsers() {
 		value.DisplayUser()
 	}
@@ -17,13 +17,13 @@ func listUsers(c *cli.Context) {
 
 func userByEmail(c *cli.Context) {
 	var db = connectDB(c)
-	var admin = gotham_admin.GothamDB{db}
+	var admin = gotham_admin.GothamDB{DB: db}
 	admin.GetUserByEmail(c.Args().First()).DisplayUser()
 }
 
 func userByID(c *cli.Context) {
 	var db = connectDB(c)
-	var admin = gotham_admin.GothamDB{db}
+	var admin = gotham_admin.GothamDB{DB: db}
 	userid, err := strconv.Atoi(c.Args().First())
 	if err != nil {
 		println("Error : Not an number")
@@ -33,7 +33,7 @@ func userByID(c *cli.Context) {
 
 func activateAccountById(c *cli.Context){
 	db := connectDB(c)
-	admin := gotham_admin.GothamDB{db}
+	admin := gotham_admin.GothamDB{DB: db}
 	userid, err := strconv.Atoi(c.Args().First())
 	if err != nil {
 		println("Error : Not an number")
@@ -44,7 +44,7 @@ func activateAccountById(c *cli.Context){
 
 func deactivateAccountById(c *cli.Context){
 	db := connectDB(c)
-	admin := gotham_admin.GothamDB{db}
+	admin := gotham_admin.GothamDB{DB: db}
 	userid, err := strconv.Atoi(c.Args().First())
 	if err != nil {
 		println("Error : Not an number")
