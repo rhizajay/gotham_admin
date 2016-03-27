@@ -47,25 +47,24 @@ func main() {
 			Usage:   "options for task templates",
 			Subcommands: []cli.Command{
 				{
-					Name:  "add",
+					Name:  "adduser",
 					Usage: "add a user to group",
-					Action: func(c *cli.Context) {
-						println("a1 new task template: ", c.Args().First())
-					},
+					Action: addUserToGroup,
 				},
 				{
-					Name:  "remove",
+					Name:  "removeuser",
 					Usage: "remove a user from group",
-					Action: func(c *cli.Context) {
-						println("a2 aremoved task template: ", c.Args().First())
-					},
+					Action: removeUserFromGroup,
 				},
 				{
 					Name:  "list",
 					Usage: "list groups",
-					Action: func(c *cli.Context) {
-						println("a3 removed task template: ", c.Args().First())
-					},
+					Action: listGroups,
+				},
+								{
+					Name:  "list_members",
+					Usage: "list groups",
+					Action: listMembers,
 				},
 			},
 		},
@@ -76,11 +75,13 @@ func main() {
 			Subcommands: []cli.Command{
 				{
 					Name:  "activate",
+					Aliases: []string{"a"},
 					Usage: "turn user to active",
 					Action: activateAccountById,
 				},
 				{
 					Name:  "deactivate",
+					Aliases: []string{"d"},
 					Usage: "turn user to inactive",
 					Action: deactivateAccountById,
 				},
