@@ -8,8 +8,8 @@ import (
 )
 
 type RhizaGroup struct {
-	group_id int
-	title    string
+	Group_id int
+	Title    string
 }
 
 func (r GothamDB) GetGroupNames() []RhizaGroup {
@@ -22,12 +22,12 @@ func (r GothamDB) GetGroupNames() []RhizaGroup {
 	for rows.Next() {
 		var group RhizaGroup
 
-		err = rows.Scan(&group.group_id, &s)
+		err = rows.Scan(&group.Group_id, &s)
 
 		if s.Valid {
-			group.title = s.String
+			group.Title = s.String
 		} else {
-			group.title = ""
+			group.Title = ""
 		}
 
 		checkErr(err)
@@ -47,12 +47,12 @@ func (r GothamDB) GetGroupName(groupid int) RhizaGroup {
 
 	for rows.Next() {
 
-		err = rows.Scan(&group.group_id, &s)
+		err = rows.Scan(&group.Group_id, &s)
 
 		if s.Valid {
-			group.title = s.String
+			group.Title = s.String
 		} else {
-			group.title = ""
+			group.Title = ""
 		}
 
 		checkErr(err)
@@ -66,11 +66,11 @@ func (r GothamDB) SetGroup(userid int, groupid int) {
 
 	user := r.GetUserById(userid)
 
-	if user.groups[groupid] {
+	if user.Groups[groupid] {
 		fmt.Println("Already a member of this group")
 	} else {
 
-		stmt, err := r.DB.Prepare("INSERT account_to_account_group SET account_id=?, group_id=?")
+		stmt, err := r.DB.Prepare("INSERT account_to_account_group SET account_id=?, Group_id=?")
 
 		checkErr(err)
 
@@ -87,7 +87,7 @@ func (r GothamDB) SetGroup(userid int, groupid int) {
 
 func (r GothamDB) GetGroupMembersByGroupId(groupid int) []RhizaUser {
 
-	rows, err := r.DB.Query("SELECT account_to_account_group.account_id, email, username, is_active FROM account JOIN account_to_account_group ON account_id = account_to_account_group.account_id WHERE account_to_account_group.group_id=? and account.id = account_to_account_group.account_id", groupid)
+	rows, err := r.DB.Query("SELECT account_to_account_group.account_id, email, username, is_active FROM account JOIN account_to_account_group ON account_id = account_to_account_group.account_id WHERE account_to_account_group.Group_id=? and account.id = account_to_account_group.account_id", groupid)
 	checkErr(err)
 
 	var members []RhizaUser
@@ -95,9 +95,9 @@ func (r GothamDB) GetGroupMembersByGroupId(groupid int) []RhizaUser {
 	for rows.Next() {
 		var user RhizaUser
 
-		err = rows.Scan(&user.id, &user.email, &user.username, &user.is_active)
-		user.groups = make(map[int]bool)
-		user.groups[groupid] = true
+		err = rows.Scan(&user.Id, &user.Email, &user.Username, &user.Is_active)
+		user.Groups = make(map[int]bool)
+		user.Groups[groupid] = true
 		checkErr(err)
 
 		members = append(members, user)
@@ -109,11 +109,11 @@ func (r GothamDB) GetGroupMembersByGroupId(groupid int) []RhizaUser {
 func (r GothamDB) DeleteUserFromGroup(userid int, groupid int) {
 	user := r.GetUserById(userid)
 
-	if !user.groups[groupid] {
+	if !user.Groups[groupid] {
 		fmt.Println("Not a member of this group")
 	} else {
 
-		stmt, err := r.DB.Prepare("DELETE FROM account_to_account_group WHERE account_id=? AND group_id=?")
+		stmt, err := r.DB.Prepare("DELETE FROM account_to_account_group WHERE account_id=? AND Group_id=?")
 
 		checkErr(err)
 
@@ -128,10 +128,10 @@ func (r GothamDB) DeleteUserFromGroup(userid int, groupid int) {
 }
 
 // type RhizaGroup struct {
-// 	group_id int
+// 	Group_id int
 // 	title    string
 // }
 
 func (r RhizaGroup) DisplayGroup() {
-	fmt.Printf("%d\t%s\n", r.group_id, r.title)
+	fmt.Printf("%d\t%s\n", r.Group_id, r.Title)
 }

@@ -10,13 +10,13 @@ import (
 )
 
 type RhizaUser struct {
-	id       int
-	username string
-	email    string
-	is_active int
+	Id       int
+	Username string
+	Email    string
+	Is_active int
 	// created time.Time
 	// lastLogin time.Time
-	groups map[int]bool
+	Groups map[int]bool
 }
 
 func (r GothamDB) GetUsers() []RhizaUser {
@@ -34,15 +34,15 @@ func (r GothamDB) GetUsers() []RhizaUser {
 
 		var currentUser RhizaUser
 
-		err = rows.Scan(&currentUser.id, &currentUser.email, &currentUser.username, &currentUser.is_active, &nullableid)
+		err = rows.Scan(&currentUser.Id, &currentUser.Email, &currentUser.Username, &currentUser.Is_active, &nullableid)
 
 		if nullableid.Valid {
 			group = int(nullableid.Int64)
-			if currentUser.id == lastUser.id {
-				lastUser.groups[group] = true
+			if currentUser.Id == lastUser.Id {
+				lastUser.Groups[group] = true
 			} else {
-				currentUser.groups = make(map[int]bool)
-				currentUser.groups[group] = true
+				currentUser.Groups = make(map[int]bool)
+				currentUser.Groups[group] = true
 				userlist = append(userlist, lastUser)
 				lastUser = currentUser
 
@@ -61,15 +61,15 @@ func (r GothamDB) GetUserByEmail(s string) RhizaUser {
 	rows, err := r.DB.Query("SELECT account.id, email, username, is_active, group_id FROM account join account_to_account_group ON account.id = account_to_account_group.account_id WHERE email=?", s)
 	checkErr(err)
 	var user RhizaUser
-	user.groups = make(map[int]bool)
+	user.Groups = make(map[int]bool)
 
 	for rows.Next() {
 		var group int
 
-		err = rows.Scan(&user.id, &user.email, &user.username, &user.is_active, &group)
+		err = rows.Scan(&user.Id, &user.Email, &user.Username, &user.Is_active, &group)
 
 		checkErr(err)
-		user.groups[group] = true
+		user.Groups[group] = true
 	}
 	return user
 
@@ -77,33 +77,33 @@ func (r GothamDB) GetUserByEmail(s string) RhizaUser {
 
 func (r GothamDB) GetUserById(id int) RhizaUser {
 
-	rows, err := r.DB.Query("SELECT account.id, email, username, is_active, group_id FROM account join account_to_account_group ON account.id = account_to_account_group.account_id WHERE account.id=?", id)
+	rows, err := r.DB.Query("SELECT account.id, email, username, is_active, Group_id FROM account join account_to_account_group ON account.id = account_to_account_group.account_id WHERE account.id=?", id)
 	checkErr(err)
 	var user RhizaUser
-	user.groups = make(map[int]bool)
+	user.Groups = make(map[int]bool)
 
 	for rows.Next() {
 		var group int
 
-		err = rows.Scan(&user.id, &user.email, &user.username, &user.is_active, &group)
+		err = rows.Scan(&user.Id, &user.Email, &user.Username, &user.Is_active, &group)
 
 		checkErr(err)
-		user.groups[group] = true
+		user.Groups[group] = true
 	}
 	return user
 
 }
 
 func (r RhizaUser) DisplayUser() {
-	fmt.Printf("%d\t%s\t%s\t", r.id, r.username, r.email)
+	fmt.Printf("%d\t%s\t%s\t", r.Id, r.Username, r.Email)
 
-	if r.is_active == 1{
+	if r.Is_active == 1{
 		fmt.Printf("\tactive\t")		
 	} else {
 		fmt.Printf("\tinactive\t")
 	}
 	fmt.Printf(" groups:")
-	for key := range r.groups {
+	for key := range r.Groups {
 		fmt.Printf(" %d ", key)
 	}
 	fmt.Printf("\n")
@@ -141,13 +141,13 @@ func (r GothamDB) ActivateAccount(userid int) {
 
 func (r GothamDB) DeactivateAccountByEmail(email string) {
 	user := r.GetUserByEmail(email)
-	r.DeactivateAccount(user.id)
+	r.DeactivateAccount(user.Id)
 
 }
 
 func (r GothamDB) ActivateAccountByEmail(email string) {
 	user := r.GetUserByEmail(email)
-	r.ActivateAccount(user.id)
+	r.ActivateAccount(user.Id)
 
 }
 
