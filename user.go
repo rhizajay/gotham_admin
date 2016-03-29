@@ -58,18 +58,21 @@ func (r GothamDB) GetUsers() []RhizaUser {
 
 func (r GothamDB) GetUserByEmail(s string) RhizaUser {
 
-	rows, err := r.DB.Query("SELECT account.id, email, username, is_active, group_id FROM account join account_to_account_group ON account.id = account_to_account_group.account_id WHERE email=?", s)
+	rows, err := r.DB.Query("SELECT account.id, email, username, is_active, group_id FROM account LEFT join account_to_account_group ON account.id = account_to_account_group.account_id WHERE email=?", s)
 	checkErr(err)
 	var user RhizaUser
 	user.Groups = make(map[int]bool)
 
+
 	for rows.Next() {
-		var group int
+		var group sql.NullInt64
 
 		err = rows.Scan(&user.Id, &user.Email, &user.Username, &user.Is_active, &group)
 
 		checkErr(err)
-		user.Groups[group] = true
+		if group.Valid{
+			user.Groups[int(group.Int64)] = true
+		}
 	}
 	return user
 
@@ -77,18 +80,20 @@ func (r GothamDB) GetUserByEmail(s string) RhizaUser {
 
 func (r GothamDB) GetUserById(id int) RhizaUser {
 
-	rows, err := r.DB.Query("SELECT account.id, email, username, is_active, Group_id FROM account join account_to_account_group ON account.id = account_to_account_group.account_id WHERE account.id=?", id)
+	rows, err := r.DB.Query("SELECT account.id, email, username, is_active, group_id FROM account LEFT join account_to_account_group ON account.id = account_to_account_group.account_id WHERE account.id=?", id)
 	checkErr(err)
 	var user RhizaUser
 	user.Groups = make(map[int]bool)
 
 	for rows.Next() {
-		var group int
+		var group sql.NullInt64
 
 		err = rows.Scan(&user.Id, &user.Email, &user.Username, &user.Is_active, &group)
 
 		checkErr(err)
-		user.Groups[group] = true
+		if group.Valid{
+			user.Groups[int(group.Int64)] = true
+		}
 	}
 	return user
 
@@ -150,6 +155,8 @@ func (r GothamDB) ActivateAccountByEmail(email string) {
 	r.ActivateAccount(user.Id)
 
 }
+
+
 
 func checkErr(err error) {
 	if err != nil {
