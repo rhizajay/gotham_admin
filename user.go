@@ -47,6 +47,8 @@ func (r GothamDB) GetUsers() []RhizaUser {
 				lastUser = currentUser
 
 			}
+		} else {
+			userlist = append(userlist, currentUser)
 		}
 
 	}
