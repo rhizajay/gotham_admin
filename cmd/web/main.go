@@ -56,11 +56,11 @@ func (c *Context) routes() *mux.Router {
 
 	r.Path("/customer/{token}/users").Methods("GET").HandlerFunc(c.getUsers)
 	r.Path("/customer/{token}/users/{userid}").Methods("GET").HandlerFunc(c.getUserById)
-	// r.Path("/customer/{token}/users/{userid}").Methods("PUT").HandlerFunc(c.activateUserById)
-	// r.Path("/customer/{token}/users/{userid}").Methods("DELETE").HandlerFunc(c.deactivateUserById)
+	r.Path("/customer/{token}/users/{userid}").Methods("PUT").HandlerFunc(c.activateUserById)
+	r.Path("/customer/{token}/users/{userid}").Methods("DELETE").HandlerFunc(c.deactivateUserById)
 	r.Path("/customer/{token}/users/e/{email}").Methods("GET").HandlerFunc(c.getUserByEmail)
-	// r.Path("/customer/{token}/users/e/{email}").Methods("PUT").HandlerFunc(c.activateUserByEmail)
-	// r.Path("/customer/{token}/users/e/{email}").Methods("DELETE").HandlerFunc(c.deactivateUserByEmail)
+	r.Path("/customer/{token}/users/e/{email}").Methods("PUT").HandlerFunc(c.activateUserByEmail)
+	r.Path("/customer/{token}/users/e/{email}").Methods("DELETE").HandlerFunc(c.deactivateUserByEmail)
 
 	r.Path("/customer/{token}/groups").Methods("GET").HandlerFunc(c.getGroups)
 	r.Path("/customer/{token}/groups/{groupid}").Methods("GET").HandlerFunc(c.getGroupMembers)
@@ -80,7 +80,7 @@ func main() {
 	flag.Parse()
 
 	dbmap := setupDB()
-	var context = Context{"/opt/gothadmin/static", dbmap}
+	var context = Context{"./static", dbmap}
 	r := context.routes()
 
 	http.ListenAndServe(":8080", r)
@@ -129,6 +129,41 @@ func (c *Context) getUserById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
+func (c *Context) activateUserById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	customer := vars["token"]
+	uid, err := strconv.Atoi(vars["userid"])
+	if err != nil {
+		println("Error : Not an number")
+	} else {
+
+		admin := gotham_admin.GothamDB{c.customer_db[customer]}
+		admin.ActivateAccount(uid)
+		user := createFromRhizaUser(admin.GetUserById(uid))
+		b, _ := json.Marshal(user)
+		w.Write([]byte(b))
+
+	}
+}
+
+func (c *Context) deactivateUserById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	customer := vars["token"]
+	uid, err := strconv.Atoi(vars["userid"])
+	if err != nil {
+		println("Error : Not an number")
+	} else {
+
+		admin := gotham_admin.GothamDB{c.customer_db[customer]}
+		admin.DeactivateAccount(uid)
+		user := createFromRhizaUser(admin.GetUserById(uid))
+		b, _ := json.Marshal(user)
+		w.Write([]byte(b))
+
+	}
+}
+
 func (c *Context) getUserByEmail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	customer := vars["token"]
@@ -140,6 +175,34 @@ func (c *Context) getUserByEmail(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(b))
 
 }
+
+func (c *Context) activateUserByEmail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	customer := vars["token"]
+	user_email := vars["email"]
+
+	admin := gotham_admin.GothamDB{c.customer_db[customer]}
+	admin.ActivateAccountByEmail(user_email)
+	user := createFromRhizaUser(admin.GetUserByEmail(user_email))
+	b, _ := json.Marshal(user)
+	w.Write([]byte(b))
+
+}
+
+func (c *Context) deactivateUserByEmail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	customer := vars["token"]
+	user_email := vars["email"]
+
+	admin := gotham_admin.GothamDB{c.customer_db[customer]}
+	admin.DeactivateAccountByEmail(user_email)
+
+	user := createFromRhizaUser(admin.GetUserByEmail(user_email))
+	b, _ := json.Marshal(user)
+	w.Write([]byte(b))
+
+}
+
 
 func (c *Context) customer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
